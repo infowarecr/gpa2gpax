@@ -1,0 +1,49 @@
+{
+    "git.confirmSync": false,
+    "editor.minimap.enabled": false,
+    "breadcrumbs.enabled": true,
+    "editor.formatOnPaste": true,
+    "editor.formatOnType": true,
+    "html.format.wrapLineLength": 200,
+    "gitlens.blame.format": "${message|40?} ${authorAgoOrDate|14-}",
+    "files.exclude": {
+      "**/node_modules": true
+    },
+    "git.enableSmartCommit": true,
+    "editor.tabSize": 2,
+    "editor.tabCompletion": "on",
+    "editor.wordWrapColumn": 120,
+    "editor.detectIndentation": true,
+    "editor.defaultFormatter": "dbaeumer.vscode-eslint",
+    "javascript.updateImportsOnFileMove.enabled": "always",
+    "markdown.preview.breaks": true,
+    "editor.renderControlCharacters": false,
+    "debug.inlineValues": "on",
+    "debug.toolBarLocation": "hidden",
+    "eslint.lintTask.enable": true,
+    "eslint.options": {
+      "semi": false
+    },
+    "files.watcherExclude": {
+      "**/codebase/**": true
+    },
+    "files.autoSave": "off",
+    "merge-conflict.autoNavigateNextConflict.enabled": true,
+    "editor.codeActionsOnSave": {
+      "source.fixAll.eslint": "explicit"
+    },
+    "eslint.format.enable": true,
+    "editor.formatOnSave": true,
+    "eslint.debug": true,
+    "eslint.codeActionsOnSave.mode": "all",
+    "[css]": {
+      "editor.defaultFormatter": "formulahendry.code-runner"
+    },
+    "editor.language.colorizedBracketPairs": [
+    
+    ],
+    "[javascript]": {
+      "editor.defaultFormatter": "vscode.typescript-language-features"
+    }
+  }
+  
