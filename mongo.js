@@ -4,7 +4,7 @@
  */
 var { MongoClient, ObjectId, Binary, Timestamp, GridFSBucket, AnyBulkWriteOperation } = require('mongodb')
 
-var maxWait = 20000
+var maxWait = 300000
 
 class Mongo {
   constructor(url) {
@@ -14,7 +14,7 @@ class Mongo {
     if (this.dbname.includes('?')) {
       this.dbname = this.dbname.substring(0, this.dbname.indexOf('?'))
     }
-    this.client = new MongoClient(url, { connectTimeoutMS: 12000, socketTimeoutMS: 30000, waitQueueTimeoutMS: 30000, appname: 'gpax' })
+    this.client = new MongoClient(url, { connectTimeoutMS: 12000, socketTimeoutMS: 300000, waitQueueTimeoutMS: 300000, appname: 'gpax' })
   }
   timestamp(a, b) {
     return Timestamp.fromBits(a, b)

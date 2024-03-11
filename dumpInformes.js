@@ -17,9 +17,9 @@ const collection = 'document2'
 const collection2 = 'idMigration2'
 const query =
   `select p.*, m.contenido as contenido, 
-    (select top 1 pp.procedimientoId from PapelXProcedimiento pp where pp.papelId = p.id order by pp.papelId) as procedimientoId,
+    (select top 1 pp.procedimientoId from InformeXProcedimiento pp where pp.informeId = p.id order by pp.informeId) as procedimientoId,
     (select top 1 uu.unidadId from UnidadXUsuario uu where uu.usuarioId = p.encargadoId order by uu.usuarioId) as unidadId
-  from Papel p left join Modelo m on p.modeloId = m.id`
+  from Informe p left join Modelo m on p.modeloId = m.id`
 
 const inicio = new Date()
 
@@ -44,12 +44,7 @@ function transform(o) {
     task: o.procedimientoId,
     tags: [],
   }
-  var contenido = o.contenido || '<contenido/>'
-  var checkeds = []
-  if (o.listaChequeo) {
-    checkeds = o.listaChequeo.split(',')
-  }
-  var ht = ''
+  
   if (o.papelOk) {
     d.status = 'ready'
   } else {
@@ -85,42 +80,52 @@ function transform(o) {
     }
   }
 
-  switch (o.corte * 1) {
-    case 1:
-      if (o.corteReal) {
-        ht = '<span>Fecha: ' + o.corteReal.toLocaleDateString() + ' </span><br>'
-        d.content = ht + d.content
-      }
-      break
-    case 2:
-      if (o.corteInicio && o.corteFin) {
-        ht = '<span>Periodo: ' + o.corteInicio.toLocaleDateString() + ' - ' + o.corteFin.toLocaleDateString() + ' </span><br>'
-        d.content = ht + d.content
-      }
-      break
+  if (o.final === '1') {
+    d.content = '<span>Informe final</span><br>'
+  }
+  if (o.descripcion) {
+    d.content = d.content + "<details open=''><summary>Introducción</summary>" + o.descripcion + '</details><br>'
   }
 
-  var body
-  try {
-    body = js2x.xml2js(contenido)
-  } catch (e) {
-    body = ''
+  if (o.resumen) {
+    d.content = d.content + "<details open=''><summary>Resumen ejecutivo</summary>" + o.resumen + '</details><br>'
+  }
+  if (o.conclusion) {
+    d.content = d.content + "<details open=''><summary>Conclusión</summary>" + o.conclusion + '</details><br>'
   }
 
-  if (body && body.contenido && body.contenido.ListaChequeo && body.contenido.ListaChequeo._text) {
-    contenido = body.contenido.ListaChequeo._text
-    contenido = contenido._ ? contenido._ : contenido
-    let cks = js2x.xml2js(contenido)
-    var html = ''
-    if (cks && (cks.ol || cks.ul)) {
-      cks.ul = cks.ul || cks.ol
-      html = "<details open=''><summary>Listachequeo</summary>"
-      for (let i in cks.ul.li) {
-        if (checkeds[i] === 1) { html += "<input type='checkbox' name='listaChequeo' value=" + cks.ul.li[i] + ' checked>' + cks.ul.li[i] + '<br>' } else { html += "<input type='checkbox' name='listaChequeo' value=" + cks.ul.li[i] + '>' + cks.ul.li[i] + '<br>' }
-      }
-      html += '</details><br>'
-    }
-    d.content = html + d.content
+  if (o.periodo || o.limitaciones || o.sugerencias || o.comentarios) {
+    d.content = d.content + "<details open=''><summary>Otros datos</summary>" +
+      (o.periodo
+        ? '<fieldset>' +
+        '<legend>Periodo:</legend>' +
+        o.entrevistados + '<br>' +
+        '</fieldset>'
+        : '') +
+      (o.limitaciones
+        ? '<fieldset>' +
+        '<legend>Limitaciones:</legend>' +
+        o.limitaciones + '<br>' +
+        '</fieldset>'
+        : '') +
+      (o.periodo
+        ? '<fieldset>' +
+        '<legend>Periodo:</legend>' +
+        o.periodo + '<br>' +
+        '</fieldset>'
+        : '') +
+      (o.sugerencias
+        ? '<fieldset>' +
+        '<legend>Sugerencias:</legend>' +
+        o.sugerencias + '<br>' +
+        '</fieldset>'
+        : '') +
+      (o.comentarios
+        ? '<fieldset>' +
+        '<legend>Sugerencias:</legend>' +
+        o.comentarios + '<br>' +
+        '</fieldset>'
+        : '')
   }
   return d
 }
@@ -142,7 +147,7 @@ function update() {
     {
       $lookup: {
         from: collection2, let: { idSql: '$template' }, as: 'template', pipeline: [
-          { $match: { $expr: { $and: [{ $eq: ['$table', 'templateFormulario'] }, { $eq: ['$idSql', '$$idSql'] }] } } },
+          { $match: { $expr: { $and: [{ $eq: ['$table', 'templateInforme'] }, { $eq: ['$idSql', '$$idSql'] }] } } },
           { $project: { _id: 1 } }
         ]
       }
@@ -178,7 +183,8 @@ function update() {
       }
     },
     { $addFields: { 'actors.unit': { $arrayElemAt: ["$unit._id", 0] }, user: '$$REMOVE', unit: '$$REMOVE' } },
-    { $merge: { into: collection, on: "_id", whenMatched: "merge", whenNotMatched: "insert" } }
+    //{ $merge: { into: collection, on: "_id", whenMatched: "merge", whenNotMatched: "insert" } }
+    { $limit: 10 }
   ]
   mongo.aggregate(collection, pipeline, (err, res) => {
     if (err) console.log(err)
@@ -192,8 +198,8 @@ function update() {
 }
 
 mongo.client.connect().then(async () => {
-  //update()
-  //return
+  update()
+  return
   var docs = mongo.db().collection(collection).initializeUnorderedBulkOp()
   var ids = mongo.db().collection(collection2).initializeUnorderedBulkOp()
   const sql = require('mssql')
