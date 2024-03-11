@@ -70,7 +70,7 @@ class Mongo {
   aggregate(collection, pipeline, options, next) {
     if (!next) {
       next = options
-      options = { allowDiskUse: true }
+      options = { allowDiskUse: true, maxTimeMS:1000000 }
     }
     var db = this.db()
     var cursor
