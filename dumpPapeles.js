@@ -206,7 +206,7 @@ mongo.client.connect().then(() => {
   qy.on('end', () => {
     if (i) {
       ids.execute()
-      papeles.execute().then(update())
+      docs.execute().then(update())
     }
     var dur = (new Date().getTime() - inicio.getTime()) / 1000
     console.log('Duración: ' + dur)
