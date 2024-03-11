@@ -4,7 +4,7 @@
  */
 var { MongoClient, ObjectId, Binary, Timestamp, GridFSBucket, AnyBulkWriteOperation } = require('mongodb')
 
-var maxWait = 20000
+var maxWait = 1000000
 
 class Mongo {
   constructor(url) {
@@ -70,7 +70,7 @@ class Mongo {
   aggregate(collection, pipeline, options, next) {
     if (!next) {
       next = options
-      options = { allowDiskUse: true }
+      options = { allowDiskUse: true, maxTimeMS:1000000 }
     }
     var db = this.db()
     var cursor
