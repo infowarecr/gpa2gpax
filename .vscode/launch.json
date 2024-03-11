@@ -1,0 +1,21 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "migrar papeles",
+      "program": "${workspaceFolder}/papeles.js",
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+    },
+        {
+      "type": "node",
+      "request": "launch",
+      "name": "dump papeles",
+      "program": "${workspaceFolder}/dumpPapeles.js",
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+    }
+  ]
+}

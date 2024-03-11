@@ -3,7 +3,6 @@
  * Created by jorge on 28/04/17.
  */
 var { MongoClient, ObjectId, Binary, Timestamp, GridFSBucket, AnyBulkWriteOperation } = require('mongodb')
-var mimeTypes = require('mime-types')
 
 var maxWait = 20000
 

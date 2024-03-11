@@ -27,9 +27,10 @@
     "files.watcherExclude": {
       "**/codebase/**": true
     },
-    "files.autoSave": "off",
+    "files.autoSave": "afterDelay",
     "merge-conflict.autoNavigateNextConflict.enabled": true,
     "editor.codeActionsOnSave": {
+    "[javascript]"
       "source.fixAll.eslint": "explicit"
     },
     "eslint.format.enable": true,
@@ -44,6 +45,9 @@
     ],
     "[javascript]": {
       "editor.defaultFormatter": "vscode.typescript-language-features"
-    }
+    },
+    "javascript.format.semicolons": "remove",
+    "typescript.format.enable": false,
+    "typescript.format.semicolons": "remove"
   }
   
