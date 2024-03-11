@@ -172,7 +172,7 @@ function update() {
       }
     },
     { $addFields: { 'actors.unit': { $arrayElemAt: ["$unit._id", 0] }, user: '$$REMOVE', unit: '$$REMOVE' } },
-    { $merge: { into: 'document', on: "_id", whenMatched: "merge", whenNotMatched: "insert" } }
+    { $merge: { into: collection, on: "_id", whenMatched: "merge", whenNotMatched: "insert" } }
   ]
   mongo.aggregate(collection, pipeline, (err, res) => {
     if (err) console.log(err)
