@@ -14,7 +14,7 @@ const to = 'mongodb://gpax2,gpax3/gpax?replicaSet=gpax'
 const collection = 'comment'
 const collection2 = 'idMigration2'
 const query =
-  `select * from Comentario where tipoPadre!='Comentario'`
+  `select * from Comentario'`
 
 const inicio = new Date()
 
