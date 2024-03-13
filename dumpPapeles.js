@@ -43,7 +43,7 @@ function transform(o) {
     pageType: '',
     sequence: { "text": "" },
     task: o.procedimientoId,
-    tags: [],
+    tags: [o.tema]
   }
   var contenido = o.contenido || '<contenido/>'
   var checkeds = []
