@@ -10,9 +10,10 @@ const from = {
     trustServerCertificate: true
   }
 }
-const to = 'mongodb://gpax2,gpax3/gpax?replicaSet=gpax'
+const to = 'mongodb://gpax1/gpax'
+//const to = 'mongodb://gpax2,gpax3/gpax?replicaSet=gpax'
 const collection = 'time'
-const collection2 = 'idMigration2'
+const collection2 = 'idMigration'
 const query =
   `select t.*, p.nombre as procedimiento, a.nombre as actividad, e.planId as plan1, r.planId as plan2
         from Tarea t

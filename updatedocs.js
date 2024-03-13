@@ -1,6 +1,7 @@
-const to = 'mongodb://gpax2,gpax3/gpax?replicaSet=gpax'
-const collection = 'document2'
-const collection2 = 'idMigration2'
+const to = 'mongodb://gpax1/gpax'
+//const to = 'mongodb://gpax2,gpax3/gpax?replicaSet=gpax'
+const collection = 'document'
+const collection2 = 'idMigration'
 
 const inicio = new Date()
 
