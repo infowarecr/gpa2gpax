@@ -23,7 +23,7 @@ class Mongo {
     var _id = new ObjectId()
     if (date) {
       var timestamp = Math.floor(date.getTime() / 1000)
-      var hex = timestamp.toString(16) + '0000000000000000'
+      var hex = timestamp.toString(16) + Math.floor(Math.random() * 10000).toString(16)
       _id = new ObjectId(hex)
     }
     return _id
@@ -70,7 +70,7 @@ class Mongo {
   aggregate(collection, pipeline, options, next) {
     if (!next) {
       next = options
-      options = { allowDiskUse: true, maxTimeMS:1000000 }
+      options = { allowDiskUse: true, maxTimeMS: 1000000 }
     }
     var db = this.db()
     var cursor
