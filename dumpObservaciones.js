@@ -12,9 +12,10 @@ const from = {
     trustServerCertificate: true
   }
 }
-const to = 'mongodb://gpax2,gpax3/gpax?replicaSet=gpax'
-const collection = 'document2'
-const collection2 = 'idMigration2'
+const to = 'mongodb://gpax1/gpax'
+//const to = 'mongodb://gpax2,gpax3/gpax?replicaSet=gpax'
+const collection = 'document'
+const collection2 = 'idMigration'
 const query =
   `select p.*, m.contenido as contenido, 
     (select top 1 pp.procedimientoId from ObservacionXProcedimiento pp where pp.observacionId = p.id order by pp.observacionId) as procedimientoId,

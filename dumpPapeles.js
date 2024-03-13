@@ -12,13 +12,14 @@ const from = {
     trustServerCertificate: true
   }
 }
-const to = 'mongodb://gpax2,gpax3/gpax?replicaSet=gpax'
-const collection = 'document2'
-const collection2 = 'idMigration2'
+const to = 'mongodb://gpax1/gpax'
+//const to = 'mongodb://gpax2,gpax3/gpax?replicaSet=gpax'
+const collection = 'document'
+const collection2 = 'idMigration'
 const query =
   `select p.*, m.contenido as contenido, 
     (select top 1 pp.procedimientoId from PapelXProcedimiento pp where pp.papelId = p.id order by pp.papelId) as procedimientoId,
-    (select top 1 uu.unidadId from UnidadXUsuario uu where uu.usuarioId = p.encargadoId order by uu.usuarioId) as unidadId,
+    (select top 1 uu.unidadId from UnidadXUsuario uu where uu.usuarioId = p.encargadoId order by uu.usuarioId) as unidadId
   from Papel p left join Modelo m on p.modeloId = m.id`
 
 const inicio = new Date()

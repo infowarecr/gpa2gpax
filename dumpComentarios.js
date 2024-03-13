@@ -10,11 +10,12 @@ const from = {
     trustServerCertificate: true
   }
 }
-const to = 'mongodb://gpax2,gpax3/gpax?replicaSet=gpax'
+const to = 'mongodb://gpax1/gpax'
+//const to = 'mongodb://gpax2,gpax3/gpax?replicaSet=gpax'
 const collection = 'comment'
-const collection2 = 'idMigration2'
+const collection2 = 'idMigration'
 const query =
-  `select * from Comentario'`
+  `select * from Comentario`
 
 const inicio = new Date()
 
@@ -42,14 +43,14 @@ function transform(o) {
   let d = {
     _id: mongo.newId(o.fecha || new Date()),
     collection: collection,
-    document: padreId || '',
+    document: o.padreId || '',
     comment: o.nombre + '<br/>' + o.descripcion,
     dateTime: o.fecha || new Date(),
     involved: [],
     mentions: [],
     unread: [],
     migrated: 1,
-    user: autorId || ''
+    user: o.autorId || ''
   }
   
   return d
@@ -57,38 +58,8 @@ function transform(o) {
 
 function update() {
   let pipeline = [
-    // Actualizará el proyecto, el modelo, la tarea , el usuario y la unidad
-    { $project: { document: 1, plan: 1, project: 1, user: 1 } },
-    // Recupera el id del proyecto
-    {
-      $lookup: {
-        from: 'idMigration', let: { idSql: '$project' }, as: 'project', pipeline: [
-          { $match: { $expr: { $and: [{ $eq: ['$table', 'project'] }, { $eq: ['$idSql', '$$idSql'] }] } } },
-          { $project: { _id: 1 } }
-        ]
-      }
-    },
-    { $addFields: { project: { $arrayElemAt: ["$project._id", 0] } } },
-    // Recupera el id del documento (procedimientoId = task)
-    {
-      $lookup: {
-        from: 'idMigration', let: { idSql: '$document'}, as: 'document', pipeline: [
-          { $match: { $expr: { $and: [{ $eq: ['$table', 'taskp'] }, { $eq: ['$idSql', '$$idSql'] }] } } },
-          { $project: { _id: 1 } }
-        ]
-      }
-    },
-    { $addFields: { document: { $arrayElemAt: ["$document._id", 0] } } },
-    // Recupera el id del plan
-    {
-      $lookup: {
-        from: 'idMigration', let: { idSql: '$plan' }, as: 'plan', pipeline: [
-          { $match: { $expr: { $and: [{ $eq: ['$table', 'plan'] }, { $eq: ['$idSql', '$$idSql'] }] } } },
-          { $project: { _id: 1 } }
-        ]
-      }
-    },
-    { $addFields: { plan: { $arrayElemAt: ["$plan._id", 0] } } },
+    { $match: { collection: { $ne: 'comment' } } },
+    { $project: { collection: 1, document: 1, user: 1 } },
     // Recupera el id del usuario
     {
       $lookup: {
@@ -99,15 +70,69 @@ function update() {
       }
     },
     { $addFields: { 'user': { $arrayElemAt: ["$user._id", 0] } } },
+    // Recupera 
+    {
+      $lookup: {
+        from: 'idMigration', let: { idSql: '$document', table: '$collection' }, as: 'document', pipeline: [
+          { $match: { $expr: { $and: [{ $eq: ['$table', '$$table'] }, { $eq: ['$idSql', '$$idSql'] }] } } },
+          { $project: { _id: 1 } }
+        ]
+      }
+    },
+    { $addFields: { 'document': { $arrayElemAt: ["$document._id", 0] } } },
+
+
     { $merge: { into: collection, on: "_id", whenMatched: "merge", whenNotMatched: "insert" } }
   ]
   mongo.aggregate(collection, pipeline, (err, res) => {
     if (err) console.log(err)
     else {
-      var dur = (new Date().getTime() - inicio.getTime()) / 1000
-      console.log(JSON.stringify(res))
-      console.log('Duración total: ' + dur)
-      process.exit(0)
+      pipeline = [
+        { $match: { collection: 'comment' } },
+        { $sort: { _id: 1 } },
+        { $project: { collection: 1, document: 1, user: 1 } },
+        // Recupera el id del usuario
+        {
+          $lookup: {
+            from: 'idMigration', let: { idSql: '$user' }, as: 'user', pipeline: [
+              { $match: { $expr: { $and: [{ $eq: ['$table', 'user'] }, { $eq: ['$idSql', '$$idSql'] }] } } },
+              { $project: { _id: 1 } }
+            ]
+          }
+        },
+        { $addFields: { 'user': { $arrayElemAt: ["$user._id", 0] } } },
+        // Recupera el comentario padre
+        {
+          $lookup: {
+            from: 'idMigration', let: { idSql: '$document' }, as: 'com', pipeline: [
+              { $match: { $expr: { $and: [{ $eq: ['$table', 'comment'] }, { $eq: ['$idSql', '$$idSql'] }] } } },
+              { $project: { _id: 1 } }
+            ]
+          }
+        },
+        { $addFields: { com: { $arrayElemAt: ["$com._id", 0] } } },
+        // Recupera el document y la collection del comentario padre
+        {
+          $lookup: {
+            from: "comment",
+            localField: 'com',
+            foreignField: "_id",
+            as: "com"
+          }
+        },
+        { $addFields: { document: { $arrayElemAt: ["$com.document", 0] }, collection: { $arrayElemAt: ["$com.collection", 0] }, com: '$$REMOVE' } },
+        { $merge: { into: collection, on: "_id", whenMatched: "merge", whenNotMatched: "insert" } }
+      ]
+      mongo.aggregate(collection, pipeline, (err, res) => {
+        if (err) console.log(err)
+        else {
+
+          var dur = (new Date().getTime() - inicio.getTime()) / 1000
+          console.log(JSON.stringify(res))
+          console.log('Duración total: ' + dur)
+          process.exit(0)
+        }
+      })
     }
   })
 }
