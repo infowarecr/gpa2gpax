@@ -23,7 +23,7 @@ class Mongo {
     var _id = new ObjectId()
     if (date) {
       var timestamp = Math.floor(date.getTime() / 1000)
-      var hex = timestamp.toString(16) + Math.floor(Math.random() * 10000).toString(16)
+      var hex = timestamp.toString(16) + Math.floor(Math.random() * 1000000).toString(16)
       hex += '0'.repeat(24 - hex.length)
       _id = new ObjectId(hex)
     }

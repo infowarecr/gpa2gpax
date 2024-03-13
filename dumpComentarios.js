@@ -10,8 +10,8 @@ const from = {
     trustServerCertificate: true
   }
 }
-const to = 'mongodb://gpax1/gpax'
-//const to = 'mongodb://gpax2,gpax3/gpax?replicaSet=gpax'
+//const to = 'mongodb://gpax1/gpax'
+const to = 'mongodb://gpax2,gpax3/gpax?replicaSet=gpax'
 const collection = 'comment'
 const collection2 = 'idMigration'
 const query =
@@ -65,10 +65,11 @@ function transform(o) {
   // Establecer la nueva zona horaria en GMT-6:00
   var nuevaFecha = new Date(fechaActual.getTime() - offsetEnMilisegundos - (6 * 60 * 60 * 1000));*/
 
-  var idMongo = o.fecha ? mongo.newId(o.fecha) : mongo.newId()
+  var idMongo = /*o.fecha ? mongo.newId(o.fecha) :*/ mongo.newId()
   let d = {
     _id: idMongo,
     collection: collection,
+    table: table.toLowerCase(),
     document: o.padreId || '',
     comment: o.nombre + '<br/>' + o.descripcion,
     dateTime: o.fecha || new Date(),
@@ -85,7 +86,7 @@ function transform(o) {
 function update() {
   let pipeline = [
     { $match: { collection: { $ne: 'comment' } } },
-    { $project: { collection: 1, document: 1, user: 1 } },
+    { $project: { collection: 1, document: 1, user: 1, table:1 } },
     // Recupera el id del usuario
     {
       $lookup: {
@@ -99,7 +100,7 @@ function update() {
     // Recupera 
     {
       $lookup: {
-        from: 'idMigration', let: { idSql: '$document', table: '$collection' }, as: 'document', pipeline: [
+        from: 'idMigration', let: { idSql: '$document', table: '$table' }, as: 'document', pipeline: [
           { $match: { $expr: { $and: [{ $eq: ['$table', '$$table'] }, { $eq: ['$idSql', '$$idSql'] }] } } },
           { $project: { _id: 1 } }
         ]
