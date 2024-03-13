@@ -20,8 +20,9 @@ const query =
 const inicio = new Date()
 
 var mongo = new (require('./mongo.js').Mongo)(to)
-
+var segundos = 1
 function transform(o) {
+  ++segundos
   var table = o.tipoPadre
 
   if (['Papel', 'Observacion', 'Informe'].includes(table)) table = table.toLowerCase()
@@ -40,8 +41,33 @@ function transform(o) {
   else if (['taskf', 'taska', 'taskp'].includes(table)) collection = 'task'
   else if (table === 'time') collection = 'time'
   
+  // Obtener la fecha actual
+  var fechaActual = o.fecha || new Date()
+
+  /*// Generar un número aleatorio entre 1 y 59 para los segundos
+  var segundosAleatorios = Math.floor(Math.random() * 59) + 1
+
+  // Sumar los segundos aleatorios a la fecha actual
+  fechaActual.setSeconds(fechaActual.getSeconds() + segundosAleatorios)
+
+  // Generar un número aleatorio entre 1 y 59 para los minutos
+  var minutosAleatorios = Math.floor(Math.random() * 59) + 1
+
+  // Sumar los minutos aleatorios a la fecha actual (que ya tiene los segundos aleatorios agregados)
+  fechaActual.setMinutes(fechaActual.getMinutes() + minutosAleatorios)
+
+  // Obtener el desplazamiento de zona horaria actual en minutos
+  var offsetActual = fechaActual.getTimezoneOffset()
+
+  // Convertir el desplazamiento de zona horaria a milisegundos
+  var offsetEnMilisegundos = offsetActual * 60 * 1000
+
+  // Establecer la nueva zona horaria en GMT-6:00
+  var nuevaFecha = new Date(fechaActual.getTime() - offsetEnMilisegundos - (6 * 60 * 60 * 1000));*/
+
+  var idMongo = o.fecha ? mongo.newId(o.fecha) : mongo.newId()
   let d = {
-    _id: mongo.newId(o.fecha || new Date()),
+    _id: idMongo,
     collection: collection,
     document: o.padreId || '',
     comment: o.nombre + '<br/>' + o.descripcion,

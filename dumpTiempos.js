@@ -10,8 +10,8 @@ const from = {
     trustServerCertificate: true
   }
 }
-const to = 'mongodb://gpax1/gpax'
-//const to = 'mongodb://gpax2,gpax3/gpax?replicaSet=gpax'
+//const to = 'mongodb://gpax1/gpax'
+const to = 'mongodb://gpax2,gpax3/gpax?replicaSet=gpax'
 const collection = 'time'
 const collection2 = 'idMigration'
 const query =
