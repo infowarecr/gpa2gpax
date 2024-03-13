@@ -42,7 +42,7 @@ function transform(o) {
     pageType: '',
     sequence: { "text": "" },
     task: o.procedimientoId,
-    tags: [],
+    tags: [o.tema]
   }
   var contenido = o.contenido || '<contenido/>'
   var checkeds = []
@@ -128,6 +128,19 @@ function update() {
   let pipeline = [
     // Actualizará el proyecto, el modelo, la tarea , el usuario y la unidad
     { $project: { project: 1, template: 1, task: 1, actors: 1 } },
+    // Recupera el id del tag
+    {
+      $lookup: {
+        from: 'params', let: { tag: { $arrayElemAt: ['$tags', 0] } }, as: 'tags', pipeline: [
+          { $match: { $expr: { $eq: ['$name', 'tag'] } } },
+          { $unwind: '$options' },
+          { $replaceRoot:{newRoot:'$options'}},
+          { $match: {$expr:{$eq:['$value','$$tag']}}},
+          { $project: { id: 1 } }
+        ]
+      }
+    },
+    //{ $addFields: { tags: { $arrayElemAt: ["$tagst._id", 0] } } },
     // Recupera el id del proyecto
     {
       $lookup: {
