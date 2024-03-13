@@ -27,7 +27,7 @@ var mongo = new (require('./mongo.js').Mongo)(to)
 
 function transform(o) {
   let d = {
-    _id: mongo.newId().toString(),
+    _id: mongo.newId(),
     name: o.nombre,
     content: o.descripcion,
     type: 'redactor',
@@ -43,7 +43,7 @@ function transform(o) {
     pageType: '',
     sequence: { "text": "" },
     task: o.procedimientoId,
-    tags: [],
+    tags: [o.tema],
   }
   
   if (o.papelOk) {
@@ -143,8 +143,9 @@ mongo.client.connect().then(async () => {
 
   let i = 0
   qy.on('row', data => {
-    docs.insert(transform(data))
-    ids.insert({ id: data._id, table: 'informe', idSql: data.id })
+    let doc = transform(data)
+    docs.insert(doc)
+    ids.insert({ _id: doc._id, table: 'informe', idSql: data.id })
     i += 1
     if (i > 10) {
       ids.execute()

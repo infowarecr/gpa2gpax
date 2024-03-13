@@ -26,9 +26,9 @@ const inicio = new Date()
 var mongo = new (require('./mongo.js').Mongo)(to)
 
 function transform(o) {
-  
+
   let d = {
-    _id: mongo.newId().toString(),
+    _id: mongo.newId(),
     comment: o.descripcion,
     cost: o.costo === null ? 0 : o.costo,
     date: o.fecha,
@@ -49,7 +49,7 @@ function transform(o) {
   if (d.task === '') {
     d.activity = o.actividad
   }
-  
+
   return d
 }
 
@@ -70,7 +70,7 @@ function update() {
     // Recupera el id del documento (procedimientoId = task)
     {
       $lookup: {
-        from: 'idMigration', let: { idSql: '$document'}, as: 'document', pipeline: [
+        from: 'idMigration', let: { idSql: '$document' }, as: 'document', pipeline: [
           { $match: { $expr: { $and: [{ $eq: ['$table', 'taskp'] }, { $eq: ['$idSql', '$$idSql'] }] } } },
           { $project: { _id: 1 } }
         ]
@@ -122,8 +122,9 @@ mongo.client.connect().then(async () => {
 
   let i = 0
   qy.on('row', data => {
-    docs.insert(transform(data))
-    ids.insert({ id: data._id, table: 'time', idSql: data.id })
+    let doc = transform(data)
+    docs.insert(doc)
+    ids.insert({ _id: doc._id, table: 'time', idSql: data.id })
     i += 1
     if (i > 10) {
       ids.execute()

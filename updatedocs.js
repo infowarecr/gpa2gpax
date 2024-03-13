@@ -20,6 +20,19 @@ function update() {
       }
     },
     { $addFields: { project: { $arrayElemAt: ["$project._id", 0] } } },
+    // Recupera el id del tag
+    {
+      $lookup: {
+        from: 'params', let: { tag: { $arrayElemAt: ['$tags', 0] } }, as: 'tags', pipeline: [
+          { $match: { $expr: { $eq: ['$name', 'tag'] } } },
+          { $unwind: '$options' },
+          { $replaceRoot: { newRoot: '$options' } },
+          { $match: { $expr: { $eq: ['$value', '$$tag'] } } },
+          { $project: { id: 1 } }
+        ]
+      }
+    },
+    { $addFields: { tags: [{ $arrayElemAt: ["$tags.id", 0] }] } },
     // Recupera el id del modelo (modeloId => template)
     {
       $lookup: {
@@ -78,5 +91,5 @@ mongo.client.connect().then(async () => {
   mongo.db().collection(collection2).createIndex({ idSql: 1, table: 1 }, { name: "ids" })
   update()
   return
-  
+
 })

@@ -18,7 +18,7 @@ const collection2 = 'idMigration2'
 const query =
   `select p.*, m.contenido as contenido, 
     (select top 1 pp.procedimientoId from PapelXProcedimiento pp where pp.papelId = p.id order by pp.papelId) as procedimientoId,
-    (select top 1 uu.unidadId from UnidadXUsuario uu where uu.usuarioId = p.encargadoId order by uu.usuarioId) as unidadId
+    (select top 1 uu.unidadId from UnidadXUsuario uu where uu.usuarioId = p.encargadoId order by uu.usuarioId) as unidadId,
   from Papel p left join Modelo m on p.modeloId = m.id`
 
 const inicio = new Date()
@@ -27,7 +27,7 @@ var mongo = new (require('./mongo.js').Mongo)(to)
 
 function transform(o) {
   let d = {
-    _id: mongo.newId().toString(),
+    _id: mongo.newId(),
     name: o.nombre,
     content: o.descripcion,
     type: 'redactor',
@@ -39,7 +39,7 @@ function transform(o) {
       unit: o.unidadId
     }],
     template: o.modeloId,
-    templateName:'templatePapel',
+    templateName: 'templatePapel',
     pageType: '',
     sequence: { "text": "" },
     task: o.procedimientoId,
@@ -137,8 +137,9 @@ mongo.client.connect().then(async () => {
 
   let i = 0
   qy.on('row', data => {
-    docs.insert(transform(data))
-    ids.insert({ id: data._id, table: 'papel', idSql: data.id })
+    let doc = transform(data)
+    docs.insert(doc)
+    ids.insert({ _id: doc._id, table: 'papel', idSql: data.id })
     i += 1
     if (i > 10) {
       ids.execute()

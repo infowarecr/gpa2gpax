@@ -40,7 +40,7 @@ function transform(o) {
   else if (table === 'time') collection = 'time'
   
   let d = {
-    _id: mongo.newId(o.fecha || new Date()).toString(),
+    _id: mongo.newId(o.fecha || new Date()),
     collection: collection,
     document: padreId || '',
     comment: o.nombre + '<br/>' + o.descripcion,
@@ -124,8 +124,9 @@ mongo.client.connect().then(async () => {
 
   let i = 0
   qy.on('row', data => {
-    docs.insert(transform(data))
-    ids.insert({ id: data._id, table: 'comment', idSql: data.id })
+    let doc = transform(data)
+    docs.insert(doc)
+    ids.insert({ _id: doc._id, table: 'comment', idSql: data.id })
     i += 1
     if (i > 10) {
       ids.execute()
