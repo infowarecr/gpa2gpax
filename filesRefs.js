@@ -5,7 +5,7 @@ const inicio = new Date()
 var mongo = new (require('./mongo.js').Mongo)(to)
 
 var pipeline = [
-  { $match: { filename: /(Papel|Observacion|Informe)\// } },
+  { $match: { filename: /(Observacion|Informe)\// } },
   { $project: { filename: { $split: ["$filename", "/"] }, length: 1 } },
   {
     $project: {

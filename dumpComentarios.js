@@ -73,7 +73,7 @@ function transform(o) {
     document: o.padreId || '',
     comment: o.nombre + '<br/>' + o.descripcion,
     dateTime: o.fecha || new Date(),
-    involved: [],
+    involved: [o.autorId],
     mentions: [],
     unread: [],
     migrated: 1,
@@ -106,7 +106,11 @@ function update() {
         ]
       }
     },
-    { $addFields: { 'document': { $arrayElemAt: ["$document._id", 0] } } },
+    {
+      $addFields: {
+        'document': { $arrayElemAt: ["$document._id", 0] },
+        involved: ['$user']}
+    },
 
 
     { $merge: { into: collection, on: "_id", whenMatched: "merge", whenNotMatched: "insert" } }
@@ -147,7 +151,14 @@ function update() {
             as: "com"
           }
         },
-        { $addFields: { document: { $arrayElemAt: ["$com.document", 0] }, collection: { $arrayElemAt: ["$com.collection", 0] }, com: '$$REMOVE' } },
+        {
+          $addFields: {
+            document: { $arrayElemAt: ["$com.document", 0] },
+            collection: { $arrayElemAt: ["$com.collection", 0] },
+            involved:['$user'],
+            com: '$$REMOVE'
+          }
+        },
         { $merge: { into: collection, on: "_id", whenMatched: "merge", whenNotMatched: "insert" } }
       ]
       mongo.aggregate(collection, pipeline, (err, res) => {

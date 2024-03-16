@@ -262,7 +262,6 @@ function transform(o) {
 
 function update() {
   let pipeline = [
-    { $sort: { _id: -1 } },
     // Actualizará el proyecto, el modelo, la tarea , el usuario y la unidad
     { $project: { unit: 1, units: 1, plan: 1, auditable: 1, actors: 1 } },
     // Recupera el id de la unidad (departamento)
@@ -295,28 +294,8 @@ function update() {
       }
     },
     { $addFields: { plan: { $arrayElemAt: ["$plan._id", 0] } } },
-    // Recupera el id de los actores
-    {
-      $lookup: {
-        from: 'project', let: { id: '$_id' }, as: 'actors', pipeline: [
-          { $match: { $expr: { $eq: ['$_id', '$$id'] } } },
-          { $project: { actors: 1, _id: 0 } },
-          { $unwind: '$actors' },
-          {
-            $lookup: {
-              from: 'idMigration', let: { idSql: '$actors.user', type: '$actors.type' }, as: 'actors', pipeline: [
-                { $match: { $expr: { $and: [{ $eq: ['$table', 'user'] }, { $eq: ['$idSql', '$$idSql'] }] } } },
-                { $project: { user: '$_id', type: '$$type', _id: 0 } }
-              ]
-            }
-          },
-          { $group: { _id: null, actors: { $push: { $arrayElemAt: ['$actors', 0] } } } },
-        ]
-      }
-    },
-    { $addFields: { actors: { $arrayElemAt: ["$actors.actors", 0] } } },
     // Recupera el id de tag
-    {
+    /*{
       $lookup: {
         from: 'params', let: { tag: '$tag' }, as: 'tag', pipeline: [
           { $match: { $expr: { $eq: ['$name', 'projectTag'] } } },
@@ -340,16 +319,45 @@ function update() {
         ]
       }
     },
-    { $addFields: { area: { $arrayElemAt: ["$area.id", 0] } } },
+    { $addFields: { area: { $arrayElemAt: ["$area.id", 0] } } },*/
     { $merge: { into: collection, on: "_id", whenMatched: "merge", whenNotMatched: "insert" } }
   ]
   mongo.aggregate(collection, pipeline, (err, res) => {
     if (err) console.log(err)
     else {
-      var dur = (new Date().getTime() - inicio.getTime()) / 1000
-      console.log(JSON.stringify(res))
-      console.log('Duración total: ' + dur)
-      process.exit(0)
+      pipeline = [
+        { $project: { actors: 1 } },
+        // Recupera el id de los actores
+        {
+          $lookup: {
+            from: 'project', let: { id: '$_id' }, as: 'actors', pipeline: [
+              { $match: { $expr: { $eq: ['$_id', '$$id'] } } },
+              { $project: { actors: 1, _id: 0 } },
+              { $unwind: '$actors' },
+              {
+                $lookup: {
+                  from: 'idMigration', let: { idSql: '$actors.user', type: '$actors.type' }, as: 'actors', pipeline: [
+                    { $match: { $expr: { $and: [{ $eq: ['$table', 'user'] }, { $eq: ['$idSql', '$$idSql'] }] } } },
+                    { $project: { user: '$_id', type: '$$type', _id: 0 } }
+                  ]
+                }
+              },
+              { $group: { _id: null, actors: { $push: { $arrayElemAt: ['$actors', 0] } } } },
+            ]
+          }
+        },
+        { $addFields: { actors: { $arrayElemAt: ["$actors.actors", 0] } } },
+        { $merge: { into: collection, on: "_id", whenMatched: "merge", whenNotMatched: "insert" } }
+      ]
+      mongo.aggregate(collection, pipeline, (err, res) => {
+        if (err) console.log(err)
+        else {
+          var dur = (new Date().getTime() - inicio.getTime()) / 1000
+          console.log(JSON.stringify(res))
+          console.log('Duración total: ' + dur)
+          process.exit(0)
+        }
+      })
     }
   })
 }
@@ -381,7 +389,7 @@ mongo.client.connect().then(async () => {
   qy.on('done', () => {
     if (i) {
       ids.execute()
-      docs.execute().then(update())
+      docs.execute()//.then(update())
     }
     var dur = (new Date().getTime() - inicio.getTime()) / 1000
     console.log('Duración: ' + dur)
