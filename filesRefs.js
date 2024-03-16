@@ -5,7 +5,7 @@ const inicio = new Date()
 var mongo = new (require('./mongo.js').Mongo)(to)
 
 var pipeline = [
-  { $match: { filename: /(Observacion|Informe)\// } },
+  { $match: { filename: /(Procedimiento|Papel|Observacion|Informe)\// } },
   { $project: { filename: { $split: ["$filename", "/"] }, length: 1 } },
   {
     $project: {
@@ -15,6 +15,7 @@ var pipeline = [
       length: 1
     }
   },
+  { $addFields: { type: { $cond: { if: { $eq: ['$type', 'procedimiento'] },then:'taskp',else:'$type'}}}},
   {
     $group: {
       _id: { idSql: '$id', table: '$type' },
@@ -55,10 +56,26 @@ var pipeline = [
   },
   { $unwind: '$project' },
   { $addFields: { project: '$project.project' } },
-  { $group: { _id: "$project", docs: { $push: { files: '$files', id: '$document' } } } },
-  { $out: 'filesXproject' }
+  { $group: { _id: "$project", docs: { $push: { type:'$type',files: '$files', id: '$document' } } } }
 ]
-mongo.aggregate('fs.files', pipeline, (err, res) => {
-  if (err) console.log(err)
-  else console.log(JSON.stringify(res))
+mongo.client.connect().then(async () => {
+  var refs = mongo.db().collection('fs.files').aggregate(pipeline, { allowDiskUse: true }).stream()
+  var files = mongo.db().collection('filesXproject').initializeUnorderedBulkOp()
+  let i=0
+  refs.on('data', ref => {
+    files.insert(ref)
+    i = i + 1
+    if (i > 10) {
+      files.execute()
+      files = mongo.db().collection('filesXproject').initializeUnorderedBulkOp()
+      i =0
+    } 
+  })
+  refs.on('end', () => {
+    if (i) {
+      files.execute()
+    }
+    var dur = (new Date().getTime() - inicio.getTime()) / 1000
+    console.log('Duración: ' + dur)
+  })
 })

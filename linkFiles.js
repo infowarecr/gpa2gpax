@@ -45,6 +45,7 @@ function refs(ref) {
 }
 mongo.client.connect().then(async () => {
   var procs = mongo.db().collection('project').initializeUnorderedBulkOp()
+  var tasks = mongo.db().collection('task').initializeUnorderedBulkOp()
   var docs = mongo.db().collection('document').initializeUnorderedBulkOp()
   var files = mongo.db().collection('filesXproject').initializeUnorderedBulkOp()
 
@@ -56,7 +57,11 @@ mongo.client.connect().then(async () => {
     files.find({ _id: data._id }).update({ $set: { linked: true } })
     procs.find({ _id: data._id }).update({ $set: { files: doc.files } })
     doc.docs.forEach(ref => {
-      docs.find({ _id: ref._id }).update([{ $set: { content: { $concat: [ref.references, '$content'] } } }])
+      if (ref.type == 'taskp') {
+        tasks.find({ _id: ref.id }).update([{ $set: { files: ref.references } }])
+      } else {
+        docs.find({ _id: ref._id }).update([{ $set: { files: ref.references } }])
+      }
     })
     i += 1
     if (i > 10) {
@@ -66,6 +71,8 @@ mongo.client.connect().then(async () => {
       files = mongo.db().collection('filesXproject').initializeUnorderedBulkOp()
       docs.execute()
       docs = mongo.db().collection('document').initializeUnorderedBulkOp()
+      tasks.execute()
+      tasks = mongo.db().collection('task').initializeUnorderedBulkOp()
       i = 0
     }
   })
