@@ -10,10 +10,10 @@ const from = {
     trustServerCertificate: true
   }
 }
-const to = 'mongodb://gpax1/gpax'
-//const to = 'mongodb://gpax2,gpax3/gpax?replicaSet=gpax'
-const collection = 'project2'
-const collection2 = 'idMigration2'
+//const to = 'mongodb://gpax1/gpax'
+const to = 'mongodb://gpax2,gpax3/gpax?replicaSet=gpax'
+const collection = 'project'
+const collection2 = 'idMigration'
 const query =
   `select e.*,
     STUFF((select ',' + CAST(p.participanteId AS VARCHAR(50)) from EstudioXParticipante p where p.estudioId=e.id
@@ -298,7 +298,7 @@ function update() {
     // Recupera el id de los actores
     {
       $lookup: {
-        from: 'project2', let: { id: '$_id' }, as: 'actors', pipeline: [
+        from: 'project', let: { id: '$_id' }, as: 'actors', pipeline: [
           { $match: { $expr: { $eq: ['$_id', '$$id'] } } },
           { $project: { actors: 1, _id: 0 } },
           { $unwind: '$actors' },
@@ -306,7 +306,7 @@ function update() {
             $lookup: {
               from: 'idMigration', let: { idSql: '$actors.user', type: '$actors.type' }, as: 'actors', pipeline: [
                 { $match: { $expr: { $and: [{ $eq: ['$table', 'user'] }, { $eq: ['$idSql', '$$idSql'] }] } } },
-                { $project: { _id: 1, type: '$$type' } }
+                { $project: { user: '$_id', type: '$$type', _id: 0 } }
               ]
             }
           },
@@ -381,7 +381,7 @@ mongo.client.connect().then(async () => {
   qy.on('done', () => {
     if (i) {
       ids.execute()
-      docs.execute()//.then(update())
+      docs.execute().then(update())
     }
     var dur = (new Date().getTime() - inicio.getTime()) / 1000
     console.log('Duración: ' + dur)

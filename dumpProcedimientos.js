@@ -10,10 +10,10 @@ const from = {
     trustServerCertificate: true
   }
 }
-const to = 'mongodb://gpax1/gpax'
-//const to = 'mongodb://gpax2,gpax3/gpax?replicaSet=gpax'
-const collection = 'task2'
-const collection2 = 'idMigration2'
+//const to = 'mongodb://gpax1/gpax'
+const to = 'mongodb://gpax2,gpax3/gpax?replicaSet=gpax'
+const collection = 'task'
+const collection2 = 'idMigration'
 const query =
   `select p.*
   from Procedimiento p
@@ -99,7 +99,7 @@ function transform(o) {
     planned_start: '',
     progress: '',
     project: o.actividadId, //buscar la actividad para obtener el project de la actividad
-    realProgress: '',
+    realProgress: 0,
     render: '',
     start_date: 'insertar campo start_date de la actividad',
     status: status,
@@ -135,7 +135,7 @@ function update() {
     // Recupera el id del projecto
     {
       $lookup: {
-        from: 'idMigration2', let: { idSql: '$project' }, as: 'actividad', pipeline: [
+        from: 'idMigration', let: { idSql: '$project' }, as: 'actividad', pipeline: [
           { $match: { $expr: { $and: [{ $eq: ['$table', 'taska'] }, { $eq: ['$idSql', '$$idSql'] }] } } },
           { $project: { _id: 1 } }
         ]
@@ -144,7 +144,7 @@ function update() {
     { $addFields: { parent: { $arrayElemAt: ["$actividad._id", 0] } } },
     {
       $lookup: {
-        from: 'task2', let: { idSql: '$parent' }, as: 'actividad', pipeline: [
+        from: 'task', let: { idSql: '$parent' }, as: 'actividad', pipeline: [
           { $match: { $expr: { $and: [{ $eq: ['$_id', '$$idSql'] }] } } },
           { $project: { _id: 1, project: 1, start_date: 1 } }
         ]

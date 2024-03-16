@@ -10,10 +10,10 @@ const from = {
     trustServerCertificate: true
   }
 }
-const to = 'mongodb://gpax1/gpax'
-//const to = 'mongodb://gpax2,gpax3/gpax?replicaSet=gpax'
-const collection = 'task2'
-const collection2 = 'idMigration2'
+//const to = 'mongodb://gpax1/gpax'
+const to = 'mongodb://gpax2,gpax3/gpax?replicaSet=gpax'
+const collection = 'task'
+const collection2 = 'idMigration'
 const query =
   `select f.*,
     STUFF((select ',' + CAST(a.faseId AS VARCHAR(50)) from Actividad a where a.faseId=f.id
@@ -106,7 +106,7 @@ function transform(o) {
     planned_start: '',
     progress: '',
     project: o.estudioId,
-    realProgress: '',
+    realProgress: 0,
     render: '',
     start_date: 'insertar campo inicio del proyecto',
     status: status,
@@ -141,7 +141,7 @@ function update() {
     // Recupera el id del projecto
     {
       $lookup: {
-        from: 'idMigration2', let: { idSql: '$project' }, as: 'project', pipeline: [
+        from: 'idMigration', let: { idSql: '$project' }, as: 'project', pipeline: [
           { $match: { $expr: { $and: [{ $eq: ['$table', 'project'] }, { $eq: ['$idSql', '$$idSql'] }] } } },
           { $project: { _id: 1 } }
         ]
@@ -151,7 +151,7 @@ function update() {
     //ecupera la fecha de inicio del proyecto
     {
       $lookup: {
-        from: 'project2', let: { idSql: '$project' }, as: 'fechaInicio', pipeline: [
+        from: 'project', let: { idSql: '$project' }, as: 'fechaInicio', pipeline: [
           { $match: { $expr: { $and: [{ $eq: ['$_id', '$$idSql'] }] } } },
           { $project: { _id: 1, fechaInicio: 1 } }
         ]
