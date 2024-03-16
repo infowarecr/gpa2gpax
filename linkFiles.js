@@ -58,9 +58,9 @@ mongo.client.connect().then(async () => {
     procs.find({ _id: data._id }).update({ $set: { files: doc.files } })
     doc.docs.forEach(ref => {
       if (ref.type == 'taskp') {
-        tasks.find({ _id: ref.id }).update([{ $set: { files: ref.references } }])
+        tasks.find({ _id: ref.id }).update([{ $set: { text: { $concat: [ref.references, '$text'] } } }])
       } else {
-        docs.find({ _id: ref._id }).update([{ $set: { files: ref.references } }])
+        docs.find({ _id: ref._id }).update([{ $set: { content: { $concat: [ref.references, '$content'] } } }])
       }
     })
     i += 1
