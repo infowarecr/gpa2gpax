@@ -15,11 +15,11 @@ const to = 'mongodb://gpax1/gpax'
 const collection = 'task2'
 const collection2 = 'idMigration2'
 const query =
-  `select f.*,
-    STUFF((select ',' + CAST(a.faseId AS VARCHAR(50)) from Actividad a where a.faseId=f.id
-    for XML PATH('')), 1, 1, '') AS actividades
-  from Fase f
-  order by f.id`
+  `select a.*,
+    STUFF((select ',' + CAST(p.actividadId AS VARCHAR(50)) from Procedimiento p where p.actividadId=a.id
+    for XML PATH('')), 1, 1, '') AS procedimientos
+  from Actividad a
+  order by a.id`
 
 const inicio = new Date()
 
@@ -72,7 +72,7 @@ function transform(o) {
   let color = statusRes.color
   let status = statusRes.statusx
   let type = 'task'
-  if (o.actividades) {
+  if (o.procedimientos) {
     color = ''
     status = 'draft'
     type = 'project'
@@ -105,10 +105,10 @@ function transform(o) {
     planned_end: '',
     planned_start: '',
     progress: '',
-    project: o.estudioId,
+    project: o.faseId, //buscar la fase para obtener el project de la fase
     realProgress: '',
     render: '',
-    start_date: 'insertar campo inicio del proyecto',
+    start_date: 'insertar campo start_date de la fase',
     status: status,
     text: o.secuencia + " " + o.nombre,
     type: type,
@@ -126,6 +126,9 @@ function transform(o) {
 
 function update() {
   let pipeline = [
+    // Actualizará el proyecto, el modelo, la tarea , el usuario y la unidad
+    { $sort: { _id: -1 } },
+    { $match: { project: { $type: 'number' } } },
     // Actualizará el responsable, el proyecto, la fechaInicio
     { $project: { owner_id: 1, project: 1, start_date: 1 } },
     // Recupera el id del responsable
@@ -141,23 +144,27 @@ function update() {
     // Recupera el id del projecto
     {
       $lookup: {
-        from: 'idMigration2', let: { idSql: '$project' }, as: 'project', pipeline: [
-          { $match: { $expr: { $and: [{ $eq: ['$table', 'project'] }, { $eq: ['$idSql', '$$idSql'] }] } } },
+        from: 'idMigration2', let: { idSql: '$project' }, as: 'fase', pipeline: [
+          { $match: { $expr: { $and: [{ $eq: ['$table', 'taskf'] }, { $eq: ['$idSql', '$$idSql'] }] } } },
           { $project: { _id: 1 } }
         ]
       }
     },
-    { $addFields: { project: { $arrayElemAt: ["$project._id", 0] } } },
-    //ecupera la fecha de inicio del proyecto
+    { $addFields: { parent: { $arrayElemAt: ["$fase._id", 0] } } },
     {
       $lookup: {
-        from: 'project2', let: { idSql: '$project' }, as: 'fechaInicio', pipeline: [
+        from: 'task2', let: { idSql: '$parent' }, as: 'fase', pipeline: [
           { $match: { $expr: { $and: [{ $eq: ['$_id', '$$idSql'] }] } } },
-          { $project: { _id: 1, fechaInicio: 1 } }
+          { $project: { _id: 1, project: 1, start_date: 1 } }
         ]
       }
     },
-    { $addFields: { start_date: { $arrayElemAt: ["$fechaInicio.fechaInicio", 0] }, fechaInicio: '$$REMOVE' } },
+    {
+      $addFields: {
+        project: { $arrayElemAt: ["$fase.project", 0] },
+        start_date: { $arrayElemAt: ["$fase.start_date", 0] }, fase: '$$REMOVE'
+      }
+    },
     { $merge: { into: collection, on: "_id", whenMatched: "merge", whenNotMatched: "insert" } }
   ]
   mongo.aggregate(collection, pipeline, (err, res) => {
@@ -185,7 +192,7 @@ mongo.client.connect().then(async () => {
   qy.on('row', data => {
     let doc = transform(data)
     docs.insert(doc)
-    ids.insert({ _id: doc._id, table: 'taskf', idSql: data.id })
+    ids.insert({ _id: doc._id, table: 'taska', idSql: data.id })
     i += 1
     if (i > 10) {
       ids.execute()

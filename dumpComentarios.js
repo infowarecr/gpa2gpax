@@ -11,7 +11,7 @@ const from = {
   }
 }
 //const to = 'mongodb://gpax1/gpax'
-const to = 'mongodb://gpax2,gpax3/gpax?replicaSet=gpax'
+//const to = 'mongodb://gpax2,gpax3/gpax?replicaSet=gpax'
 const collection = 'comment'
 const collection2 = 'idMigration'
 const query =
@@ -40,7 +40,7 @@ function transform(o) {
   if (['papel', 'observacion', 'informe'].includes(table)) collection = 'document'
   else if (['taskf', 'taska', 'taskp'].includes(table)) collection = 'task'
   else if (table === 'time') collection = 'time'
-  
+
   // Obtener la fecha actual
   var fechaActual = o.fecha || new Date()
 
@@ -79,14 +79,14 @@ function transform(o) {
     migrated: 1,
     user: o.autorId || ''
   }
-  
+
   return d
 }
 
 function update() {
   let pipeline = [
     { $match: { collection: { $ne: 'comment' } } },
-    { $project: { collection: 1, document: 1, user: 1, table:1 } },
+    { $project: { collection: 1, document: 1, user: 1, table: 1 } },
     // Recupera el id del usuario
     {
       $lookup: {

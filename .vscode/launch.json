@@ -16,6 +16,14 @@
       "program": "${workspaceFolder}/dumpPapeles.js",
       "console": "integratedTerminal",
       "internalConsoleOptions": "neverOpen",
+    },
+            {
+      "type": "node",
+      "request": "launch",
+      "name": "linkFiles",
+      "program": "${workspaceFolder}/linkFiles.js",
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
     }
   ]
 }
