@@ -113,6 +113,8 @@ function update() {
 
 
 mongo.client.connect().then(async () => {
+  update()
+  return
   var docs = mongo.db().collection(collection).initializeUnorderedBulkOp()
   var ids = mongo.db().collection(collection2).initializeUnorderedBulkOp()
   const sql = require('mssql')
@@ -138,7 +140,7 @@ mongo.client.connect().then(async () => {
   qy.on('done', () => {
     if (i) {
       ids.execute()
-      docs.execute().then(update())
+      docs.execute()//.then(update())
     }
     var dur = (new Date().getTime() - inicio.getTime()) / 1000
     console.log('Duración: ' + dur)

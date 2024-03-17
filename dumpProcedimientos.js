@@ -107,7 +107,8 @@ function transform(o) {
     type: type,
     workDay: 480,
     links: [],
-    progressColor: ''
+    progressColor: '',
+    tipo:'procedimiento'
   }
 
   if (d.task === '') {
@@ -119,6 +120,7 @@ function transform(o) {
 
 function update() {
   let pipeline = [
+    { $match: { tipo: 'procedimiento' } },
     { $match: { project: { $type: 'number' } } },
     // Actualizará el responsable, el proyecto, la fechaInicio
     { $project: { owner_id: 1, project: 1, start_date: 1 } },
@@ -153,7 +155,7 @@ function update() {
     {
       $addFields: {
         project: { $arrayElemAt: ["$actividad.project", 0] },
-        start_date: { $arrayElemAt: ["$actividad.start_date", 0] }, actividad: '$$REMOVE'
+        start_date: { $arrayElemAt: ["$actividad.start_date", 0] }, actividad: '$$REMOVE', tipo: '$$REMOVE'
       }
     },
     { $merge: { into: collection, on: "_id", whenMatched: "merge", whenNotMatched: "insert" } }
@@ -171,6 +173,8 @@ function update() {
 
 
 mongo.client.connect().then(async () => {
+  update()
+  return
   var docs = mongo.db().collection(collection).initializeUnorderedBulkOp()
   var ids = mongo.db().collection(collection2).initializeUnorderedBulkOp()
   const sql = require('mssql')
@@ -196,7 +200,7 @@ mongo.client.connect().then(async () => {
   qy.on('done', () => {
     if (i) {
       ids.execute()
-      docs.execute().then(update())
+      docs.execute()//.then(update())
     }
     var dur = (new Date().getTime() - inicio.getTime()) / 1000
     console.log('Duración: ' + dur)

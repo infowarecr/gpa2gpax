@@ -45,6 +45,7 @@ function transform(o) {
     sequence: { "text": "" },
     task: o.procedimientoId,
     tags: [o.tema],
+    tipo: 'informe'
   }
 
   if (o.papelOk) {

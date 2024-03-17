@@ -101,7 +101,7 @@ function transform(o) {
     lineThrough: '',
     orden: '',
     owner_id: o.encargadoId,
-    parent: 0,
+    parent: o.faseId,
     planned_end: '',
     planned_start: '',
     progress: '',
@@ -114,7 +114,8 @@ function transform(o) {
     type: type,
     workDay: 480,
     links: [],
-    progressColor: ''
+    progressColor: '',
+    tipo:'actividad'
   }
 
   if (d.task === '') {
@@ -126,6 +127,7 @@ function transform(o) {
 
 function update() {
   let pipeline = [
+    { $match: { tipo: 'actividad' } },
     // Actualizará el proyecto, el modelo, la tarea , el usuario y la unidad
     { $sort: { _id: -1 } },
     { $match: { project: { $type: 'number' } } },
@@ -162,7 +164,7 @@ function update() {
     {
       $addFields: {
         project: { $arrayElemAt: ["$fase.project", 0] },
-        start_date: { $arrayElemAt: ["$fase.start_date", 0] }, fase: '$$REMOVE'
+        start_date: { $arrayElemAt: ["$fase.start_date", 0] }, fase: '$$REMOVE', tipo: '$$REMOVE'
       }
     },
     { $merge: { into: collection, on: "_id", whenMatched: "merge", whenNotMatched: "insert" } }
@@ -180,6 +182,8 @@ function update() {
 
 
 mongo.client.connect().then(async () => {
+  update()
+  return
   var docs = mongo.db().collection(collection).initializeUnorderedBulkOp()
   var ids = mongo.db().collection(collection2).initializeUnorderedBulkOp()
   const sql = require('mssql')
@@ -205,7 +209,7 @@ mongo.client.connect().then(async () => {
   qy.on('done', () => {
     if (i) {
       ids.execute()
-      docs.execute().then(update())
+      docs.execute()//.then(update())
     }
     var dur = (new Date().getTime() - inicio.getTime()) / 1000
     console.log('Duración: ' + dur)

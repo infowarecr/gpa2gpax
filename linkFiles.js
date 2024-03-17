@@ -38,14 +38,13 @@ function refs(ref) {
         recent: new Date()
       })
     })
-    html += '</tbody></table > '
+    html += '</tbody></table>'
     references.push({ _id: doc.id, references: html })
   })
   return { files: files, docs: references }
 }
 mongo.client.connect().then(async () => {
   var procs = mongo.db().collection('project').initializeUnorderedBulkOp()
-  var tasks = mongo.db().collection('task').initializeUnorderedBulkOp()
   var docs = mongo.db().collection('document').initializeUnorderedBulkOp()
   var files = mongo.db().collection('filesXproject').initializeUnorderedBulkOp()
 
@@ -57,11 +56,8 @@ mongo.client.connect().then(async () => {
     files.find({ _id: data._id }).update({ $set: { linked: true } })
     procs.find({ _id: data._id }).update({ $set: { files: doc.files } })
     doc.docs.forEach(ref => {
-      if (ref.type == 'taskp') {
-        tasks.find({ _id: ref.id }).update([{ $set: { text: { $concat: [ref.references, '$text'] } } }])
-      } else {
-        docs.find({ _id: ref._id }).update([{ $set: { content: { $concat: [ref.references, '$content'] } } }])
-      }
+      let len = ref.references.length
+      docs.find({ _id: ref._id }).update([{ $set: { gpa6: len, content: { $concat: [ref.references, '$content'] } } }])
     })
     i += 1
     if (i > 10) {
@@ -71,8 +67,6 @@ mongo.client.connect().then(async () => {
       files = mongo.db().collection('filesXproject').initializeUnorderedBulkOp()
       docs.execute()
       docs = mongo.db().collection('document').initializeUnorderedBulkOp()
-      tasks.execute()
-      tasks = mongo.db().collection('task').initializeUnorderedBulkOp()
       i = 0
     }
   })

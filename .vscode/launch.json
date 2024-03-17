@@ -32,6 +32,22 @@
       "program": "${workspaceFolder}/dumpProyectos.js",
       "console": "integratedTerminal",
       "internalConsoleOptions": "neverOpen",
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "filesRefs",
+      "program": "${workspaceFolder}/filesRefs.js",
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "corregirTareas",
+      "program": "${workspaceFolder}/corregirTareas.js",
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
     }
   ]
 }

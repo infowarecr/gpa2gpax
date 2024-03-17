@@ -5,7 +5,7 @@ const inicio = new Date()
 var mongo = new (require('./mongo.js').Mongo)(to)
 
 var pipeline = [
-  { $match: { filename: /(Procedimiento|Papel|Observacion|Informe)\// } },
+  { $match: { filename: /(Papel|Observacion|Informe)\// } },
   { $project: { filename: { $split: ["$filename", "/"] }, length: 1 } },
   {
     $project: {
@@ -15,7 +15,6 @@ var pipeline = [
       length: 1
     }
   },
-  { $addFields: { type: { $cond: { if: { $eq: ['$type', 'procedimiento'] },then:'taskp',else:'$type'}}}},
   {
     $group: {
       _id: { idSql: '$id', table: '$type' },
@@ -43,7 +42,7 @@ var pipeline = [
       as: 'mongo'
     }
   },
-  { $project: { files: 1, document: { $arrayElemAt: ["$mongo._id", 0] } } },
+ { $project: { files: 1, document: { $arrayElemAt: ["$mongo._id", 1] } } },
   {
     $lookup: {
       from: "document", let: { doc: '$document' },
@@ -56,13 +55,21 @@ var pipeline = [
   },
   { $unwind: '$project' },
   { $addFields: { project: '$project.project' } },
-  { $group: { _id: "$project", docs: { $push: { type:'$type',files: '$files', id: '$document' } } } }
+  { $group: { _id: "$project", docs: { $push: { type: '$type', files: '$files', id: '$document' } } } },
+//  {$out:'filesXproject'}
 ]
+/*mongo.aggregate('fs.files', pipeline,{allowDiskUse:true}, (err, res) => {
+  if (err) console.log(err)
+  else console.log(JSON.stringify(res[0]))
+})*/
+
 mongo.client.connect().then(async () => {
   var refs = mongo.db().collection('fs.files').aggregate(pipeline, { allowDiskUse: true }).stream()
   var files = mongo.db().collection('filesXproject').initializeUnorderedBulkOp()
-  let i=0
+  let i = 0
+  let t=0
   refs.on('data', ref => {
+    t=t+1
     files.insert(ref)
     i = i + 1
     if (i > 10) {
@@ -76,6 +83,6 @@ mongo.client.connect().then(async () => {
       files.execute()
     }
     var dur = (new Date().getTime() - inicio.getTime()) / 1000
-    console.log('Duración: ' + dur)
+    console.log('Duración: ' + dur+ ' proyectos: '+t)
   })
 })

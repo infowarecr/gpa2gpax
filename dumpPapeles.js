@@ -44,7 +44,8 @@ function transform(o) {
     pageType: '',
     sequence: { "text": "" },
     task: o.procedimientoId,
-    tags: [o.tema]
+    tags: [o.tema],
+    tipo:'papel'
   }
   var contenido = o.contenido || '<contenido/>'
   var checkeds = []

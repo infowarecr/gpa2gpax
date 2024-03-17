@@ -15,7 +15,9 @@ const to = 'mongodb://gpax2,gpax3/gpax?replicaSet=gpax'
 const collection = 'comment'
 const collection2 = 'idMigration'
 const query =
-  `select * from Comentario`
+  `select * from Comentario
+   union select id,tipo as nombre, fechaHora as fecha, usuarioId as autorId, docId as padreId, tipoDoc as tipoPadre, descripcion
+  from Evento`
 
 const inicio = new Date()
 
@@ -72,7 +74,7 @@ function transform(o) {
     table: table.toLowerCase(),
     document: o.padreId || '',
     comment: o.nombre + '<br/>' + o.descripcion,
-    dateTime: o.fecha || new Date(),
+    dateTime: new Date(o.fecha) || new Date(),
     involved: [o.autorId],
     mentions: [],
     unread: [],
@@ -85,6 +87,7 @@ function transform(o) {
 
 function update() {
   let pipeline = [
+    { $match: { user: { $type: 'number' } } },
     { $match: { collection: { $ne: 'comment' } } },
     { $project: { collection: 1, document: 1, user: 1, table: 1 } },
     // Recupera el id del usuario
@@ -109,7 +112,8 @@ function update() {
     {
       $addFields: {
         'document': { $arrayElemAt: ["$document._id", 0] },
-        involved: ['$user']}
+        involved: ['$user']
+      }
     },
 
 
@@ -119,6 +123,7 @@ function update() {
     if (err) console.log(err)
     else {
       pipeline = [
+        { $match: { user: { $type: 'number' } } },
         { $match: { collection: 'comment' } },
         { $sort: { _id: 1 } },
         { $project: { collection: 1, document: 1, user: 1 } },
@@ -155,7 +160,7 @@ function update() {
           $addFields: {
             document: { $arrayElemAt: ["$com.document", 0] },
             collection: { $arrayElemAt: ["$com.collection", 0] },
-            involved:['$user'],
+            involved: ['$user'],
             com: '$$REMOVE'
           }
         },
@@ -177,6 +182,8 @@ function update() {
 
 
 mongo.client.connect().then(async () => {
+  update()
+  return
   var docs = mongo.db().collection(collection).initializeUnorderedBulkOp()
   var ids = mongo.db().collection(collection2).initializeUnorderedBulkOp()
   const sql = require('mssql')
@@ -202,7 +209,7 @@ mongo.client.connect().then(async () => {
   qy.on('done', () => {
     if (i) {
       ids.execute()
-      docs.execute().then(update())
+      docs.execute()//.then(update())
     }
     var dur = (new Date().getTime() - inicio.getTime()) / 1000
     console.log('Duración: ' + dur)
