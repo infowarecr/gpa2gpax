@@ -5,7 +5,7 @@ const inicio = new Date()
 var mongo = new (require('./mongo.js').Mongo)(to)
 
 var pipeline = [
-  { $match: { filename: /(Papel|Observacion|Informe)\// } },
+  { $match: { filename: /Plan\/.*\/(Papel|Observacion|Informe)/ } },
   { $project: { filename: { $split: ["$filename", "/"] }, length: 1 } },
   {
     $project: {
@@ -42,7 +42,7 @@ var pipeline = [
       as: 'mongo'
     }
   },
- { $project: { files: 1, document: { $arrayElemAt: ["$mongo._id", 1] } } },
+ { $project: { files: 1, document: { $arrayElemAt: ["$mongo._id", 0] } } },
   {
     $lookup: {
       from: "document", let: { doc: '$document' },

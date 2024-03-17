@@ -9,6 +9,22 @@
       "console": "integratedTerminal",
       "internalConsoleOptions": "neverOpen",
     },
+      {
+      "type": "node",
+      "request": "launch",
+      "name": "invitados",
+      "program": "${workspaceFolder}/invitados.js",
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+    },
+      {
+      "type": "node",
+      "request": "launch",
+      "name": "findMissingFiles",
+      "program": "${workspaceFolder}/findMissingFiles.js",
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+    },
         {
       "type": "node",
       "request": "launch",

@@ -333,7 +333,6 @@ class Mongo {
     this.switchIds(doc)
     var db = this.db()
     this.queue = []
-    this.$replace(doc)
     db.collection(collection).updateOne({ _id: doc._id }, { $set: doc }, { upsert: true }).then(r => next(null, r)).catch(err => next(err))
   }
   bulkWrite(collection, updates, options, next) {
