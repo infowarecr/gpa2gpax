@@ -1,0 +1,47 @@
+94401
+108552
+140895
+89382
+541770
+WriteResult({ "nRemoved" : 94401 })
+WriteResult({ "nRemoved" : 108552 })
+WriteResult({ "nRemoved" : 140895 })
+WriteResult({ "nRemoved" : 89382 })
+WriteResult({ "nRemoved" : 541770 })
+0
+0
+0
+0
+0
+
+ 
+mount -t cifs -o rw,vers=3.0,credentials=/root/.smbcredentials //172.26.1.55/gpa /mnt/gpa   -> Produccion
+mount -t cifs -o rw,vers=3.0,credentials=/root/.smbcredentials //172.26.1.248/tempgpax/gpa /mnt/gpa  -> temporal
+
+fases 18078
+actividades 25737   y 21 de esas tiene usuario 893 que no existe
+procedimientos 50586 y todos bien
+
+Papeles 80340 y de esos 1979 no tiene tarea asociada
+Observaciones 14107 y de esas 348 no tiene  tarea asociada
+Informes 14105 y de esos no tienen tarea asociada
+TOTAL 108552 y de esos 2744 no tiene tarea asociada
+
+Reportes de tiempo 140883 y de esos 151 no tienen proyecto, 1315 no tienen documento y 1317 tiene activity
+
+Eventos 863971 , Comentarios 89382 , total 953353 y de esos 17 tienen documento en blanco y 2 con usuario en blanco
+ 
+Adjuntos:
+
+Plan 373.994
+Conocimiento 90
+General 2825
+Total 376,909
+
+Refrencias de archivos adjuntos:
+Un total de 6667 proyectos con archivos adjuntos
+
+Invitados 836 en ... proyectos
+
+
+
