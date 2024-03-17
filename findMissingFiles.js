@@ -8,9 +8,9 @@ var mongo = new (require('./mongo.js').Mongo)(to)
 
 const fs = require('fs')
 
-var lines = fs.readFileSync('allFiles.txt').toString()
+var lines = fs.readFileSync('plan8.txt').toString()
 findFiles(lines.split(/\r?\n/))
-var missing=fs.createWriteStream('missingFiles.txt',{flags:'a'})
+var missing=fs.createWriteStream('missingFiles8.txt',{flags:'a'})
 async function findFiles(names) {
   for (let i in names) {
     let name = names[i]

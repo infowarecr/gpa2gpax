@@ -226,7 +226,7 @@ function transform(o) {
     planPeriod: planPeriod,
     realPeriod: realPeriod,
     files: files,
-    fechaInicio: o.inicio
+    fechaInicio: new Date(o.inicio)
   }
   if (o.encargadoId) {
     d.actors.push({
