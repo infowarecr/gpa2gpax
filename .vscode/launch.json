@@ -49,6 +49,14 @@
       "console": "integratedTerminal",
       "internalConsoleOptions": "neverOpen",
     },
+     {
+      "type": "node",
+      "request": "launch",
+      "name": "dumpShipmentExportUPS",
+      "program": "${workspaceFolder}/dumpShipmentExportUPS.js",
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+    },
     {
       "type": "node",
       "request": "launch",
