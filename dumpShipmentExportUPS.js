@@ -42,7 +42,7 @@ const query =
     es.[SATURDAY_DELIVERY_FLAGS] as saturdayDeliveryFlag,
     es.[SPECIAL_INSTRUCTION_FLAGS] as specialInstructionFlag,
     es.[INPUT_DATE] as inputDate,
-    es.[SERVICE_LEVEL] as serviceLevel,
+    es.[SERVICE_LEVEL] as serverLevel,
     es.[FREIGHT_COLLECT_FLAGS] as freightCollectFlag,
     es.[EARLY_AM_INDICATOR] as earlyAmIndicator,
     es.[OVER_31_8_KGS70_LBS_FLAGS] as overWeight,
@@ -79,10 +79,10 @@ const query =
 
     -- Subconsulta para obtener información del primer paquete
     (SELECT
-        es.[WEIGHT_1_PACKAGE_IN_SHIPMENT] AS weight1Package,
-        es.[WEIGHT_UNIT_1_PACKAGE] AS weightUnit1Package,
-        es.[PACKAGE_TRACKING_NUMBER] AS packageTrackingNumber,
-        es.[OVERSIZE_PACKAGE_FLAGS] AS oversizeFlags
+        es.[WEIGHT_1_PACKAGE_IN_SHIPMENT] AS weight,
+        es.[WEIGHT_UNIT_1_PACKAGE] AS weightUnit,
+        es.[PACKAGE_TRACKING_NUMBER] AS trackingNumber,
+        es.[OVERSIZE_PACKAGE_FLAGS] AS oversize
      FOR JSON PATH, WITHOUT_ARRAY_WRAPPER) AS packagePush,
 
     -- Subconsulta para información del remitente (shipper)
@@ -125,9 +125,9 @@ const query =
 
 FROM [dbo].[EXPORT_SHIPMENT] es
 WHERE es.[FECHA_CARGA] >= '2022-01-01'
-  AND es.[FECHA_CARGA] <= '2024-10-08'
+  AND es.[FECHA_CARGA] <= '2024-10-11'
   AND es.[SHIPMENT_ID] IS NOT NULL AND es.[SHIPMENT_ID] != ''
-ORDER BY es.[FECHA_CARGA] DESC;`
+ORDER BY es.[FECHA_CARGA] DESC`
 
 const inicio = new Date()
 
@@ -135,37 +135,44 @@ var mongo = new (require('./mongo.js').Mongo)(to)
 
 function transform(data) {
 
-  // Verifica si p.package es un string, si lo es, lo convierte a un objeto
+  // Verifica si data.package es un string, si lo es, lo convierte a un objeto
   if (typeof data.package === 'string') {
     data.package = JSON.parse(data.package)
   }
 
-  // Si p.package es un objeto, lo convierte a un array que contiene el objeto
-  if (!Array.isArray(data.package)) {
-    data.package = [JSON.parse(data.package)] // Convierte el objeto en un array con un solo elemento
+  // Si data.package es un objeto, lo convierte a un array que contiene el objeto
+  if (!Array.isArray(data.package) && data.package !== null) {
+    data.package = [JSON.parse(data.package)]
+  } else if (data.package === null) {
+    data.package = []
   }
-  // Suponiendo que p.invoice es un string que contiene un array en formato JSON
+
+  // Verifica si data.invoice es un string que contiene un array en formato JSON
   var invoiceArray = JSON.parse(data.invoice)
 
   // Verifica si el resultado es un array
-  if (Array.isArray(invoiceArray) && invoiceArray.length > 0) {
-    // Convierte el array en un objeto usando solo la primera posición
+  if (Array.isArray(invoiceArray)) {
+    // Asigna el array completo a data.invoice, conservando todos los objetos
     data.invoice = invoiceArray
   }
-
 
   var packages = data.package || []
   data.shipper = JSON.parse(data.shipper)
   data.shipper3Party = JSON.parse(data.shipper3Party)
   data.consignee = JSON.parse(data.consignee)
-  // p.invoice= JSON.parse(p.invoice)
-  packages.unshift(JSON.parse(data.packagePush))
+
+  // Inserta el contenido de packagePush al inicio de data.package si no es null
+  if (data.packagePush) {
+    packages.unshift(JSON.parse(data.packagePush))
+  }
+
   data.package = packages
   delete data.packagePush
+
   data.importDate = new Date(data.importDate)
   data.deliveryDate = new Date(data.deliveryDate)
   data.inputDate = new Date(data.inputDate)
-  data.dateShipped = new Date(data.dateShipped)
+  data.dateShipped = new Date(data.dateShipped);
 
   return data
 }
